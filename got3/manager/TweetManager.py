@@ -1,4 +1,4 @@
-import urllib.request, urllib.parse, urllib.error,urllib.request,urllib.error,urllib.parse,json,re,datetime,sys,http.cookiejar
+import urllib.request, urllib.parse, urllib.error,urllib.request,urllib.error,urllib.parse,json,re,datetime,sys,http.cookiejar,codecs
 from .. import models
 from pyquery import PyQuery
 
@@ -26,6 +26,11 @@ class TweetManager:
 			scrapedTweets = PyQuery(json['items_html'])
 			#Remove incomplete tweets withheld by Twitter Guidelines
 			scrapedTweets.remove('div.withheld-tweet')
+
+			outputFile = codecs.open("tweets.html", "w", encoding="utf-8")
+			outputFile.write(scrapedTweets.html())
+			outputFile.close()
+
 			tweets = scrapedTweets('div.js-stream-tweet')
 			
 			if len(tweets) == 0:
@@ -35,7 +40,8 @@ class TweetManager:
 				tweetPQ = PyQuery(tweetHTML)
 				tweet = models.Tweet()
 				
-				usernameTweet = tweetPQ("span.username.js-action-profile-name b").text()
+
+				#usernameTweet = tweetPQ("span.username.js-action-profile-name b").text()
 				txt = re.sub(r"\s+", " ", tweetPQ("p.js-tweet-text").text().replace('# ', '#').replace('@ ', '@'))
 				retweets = int(tweetPQ("span.ProfileTweet-action--retweet span.ProfileTweet-actionCount").attr("data-tweet-stat-count").replace(",", ""))
 				favorites = int(tweetPQ("span.ProfileTweet-action--favorite span.ProfileTweet-actionCount").attr("data-tweet-stat-count").replace(",", ""))
@@ -56,7 +62,7 @@ class TweetManager:
 						pass
 				tweet.id = id
 				tweet.permalink = 'https://twitter.com' + permalink
-				tweet.username = usernameTweet
+				tweet.username = tweet.username = re.split('/', permalink)[1]
 				
 				tweet.text = txt
 				tweet.date = datetime.datetime.fromtimestamp(dateSec)
@@ -89,6 +95,7 @@ class TweetManager:
 	@staticmethod
 	def getJsonReponse(tweetCriteria, refreshCursor, cookieJar, proxy):
 		url = "https://twitter.com/i/search/timeline?f=tweets&q=%s&src=typd&%smax_position=%s"
+		#print(url)
 		
 		urlGetData = ''
 		if hasattr(tweetCriteria, 'username'):
@@ -114,7 +121,7 @@ class TweetManager:
 			('Host', "twitter.com"),
 			('User-Agent', "Mozilla/5.0 (Windows NT 6.1; Win64; x64)"),
 			('Accept', "application/json, text/javascript, */*; q=0.01"),
-			('Accept-Language', "de,en-US;q=0.7,en;q=0.3"),
+			('Accept-Language', "en-US,de;q=0.7,en;q=0.3"),
 			('X-Requested-With', "XMLHttpRequest"),
 			('Referer', url),
 			('Connection', "keep-alive")

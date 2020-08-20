@@ -7,13 +7,14 @@ else:
 
 def main(argv):
 
+
 	if len(argv) == 0:
 		print('You must pass some parameters. Use \"-h\" to help.')
 		return
 
 	if len(argv) == 1 and argv[0] == '-h':
 		f = open('exporter_help_text.txt', 'r')
-		print f.read()
+		print(f.read())
 		f.close()
 
 		return
@@ -22,16 +23,18 @@ def main(argv):
 		opts, args = getopt.getopt(argv, "", ("username=", "near=", "within=", "since=", "until=", "querysearch=", "toptweets", "maxtweets=", "output="))
 
 		tweetCriteria = got.manager.TweetCriteria()
-		outputFileName = "output_got.csv"
+		outputFileName = "output_got-"
 
 		for opt,arg in opts:
 			if opt == '--username':
 				tweetCriteria.username = arg
 
 			elif opt == '--since':
+				outputFileName = outputFileName + arg + "-"
 				tweetCriteria.since = arg
 
 			elif opt == '--until':
+				outputFileName = outputFileName + arg + "-"
 				tweetCriteria.until = arg
 
 			elif opt == '--querysearch':
@@ -55,9 +58,10 @@ def main(argv):
 			elif opt == '--output':
 				outputFileName = arg
 				
-		outputFile = codecs.open(outputFileName, "w+", "utf-8")
 
-		outputFile.write('username;date;retweets;favorites;text;geo;mentions;hashtags;id;permalink')
+		outputFileName = outputFileName+"F.csv"
+		outputFile = codecs.open(outputFileName, "w+", "utf-8")
+		outputFile.write('sep=;\nusername;date;retweets;favorites;text;geo;mentions;hashtags;id;permalink')
 
 		print('Searching...\n')
 
@@ -71,6 +75,7 @@ def main(argv):
 
 	except arg:
 		print('Arguments parser error, try -h' + arg)
+		
 	finally:
 		outputFile.close()
 		print('Done. Output file generated "%s".' % outputFileName)
